@@ -143,4 +143,38 @@ public class EventServiceTests {
                         .count()
         );
     }    
+
+    @Test
+    void traceIdShouldBePassedToAccountClient() {
+        EventRepository eventRepository = mock(EventRepository.class);
+        AccountClient accountClient = mock(AccountClient.class);
+
+        SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+        EventService eventService =
+                new EventService(
+                        eventRepository,
+                        accountClient,
+                        registry
+                );
+
+        EventRequest request = new EventRequest(
+                "evt-trace-test",
+                "acct-trace-test",
+                "CREDIT",
+                BigDecimal.valueOf(25),
+                "USD",
+                Instant.parse("2026-06-07T10:00:00Z"),
+                null
+        );
+
+        when(eventRepository.findById("evt-trace-test")).thenReturn(java.util.Optional.empty());
+        when(eventRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(accountClient.applyTransaction(any(), any())).thenReturn(Map.of("status", "APPLIED"));
+
+        eventService.submitEvent(request, "trace-unit-test-001");
+
+        verify(accountClient).applyTransaction(any(), eq("trace-unit-test-001"));
+    }
+    
 }
