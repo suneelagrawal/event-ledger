@@ -30,7 +30,7 @@ public class EventController {
 
         String traceId = incomingTraceId != null ? incomingTraceId : UUID.randomUUID().toString();
 
-        System.out.println("{\"service\":\"event-gateway\",\"traceId\":\"" + traceId + "\",\"eventId\":\"" + request.eventId() + "\",\"message\":\"Received event\"}");
+        JsonLogger.info(traceId, "Received event " + request.getEventId());
 
         return eventService.submitEvent(request, traceId);
     }

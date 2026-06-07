@@ -22,7 +22,7 @@ public class AccountController {
             @Valid @RequestBody TransactionRequest request,
             @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
 
-        System.out.println("{\"service\":\"account-service\",\"traceId\":\"" + traceId + "\",\"message\":\"Applying transaction\"}");
+        JsonLogger.info(traceId, "Applying transaction " + request.getEventId());
         return accountService.applyTransaction(request);
     }
 
