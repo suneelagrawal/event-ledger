@@ -7,6 +7,9 @@ import com.example.eventgateway.repository.EventRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 
 import java.util.List;
 
@@ -15,15 +18,38 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final AccountClient accountClient;
+    
+    private final Counter eventsSubmittedCounter;
+    private final Counter eventsDuplicateCounter;
+    private final Counter eventsFailedCounter;    
 
     public EventService(EventRepository eventRepository,
-                        AccountClient accountClient) {
+                        AccountClient accountClient,
+                        MeterRegistry meterRegistry) {
         this.eventRepository = eventRepository;
         this.accountClient = accountClient;
+
+        this.eventsSubmittedCounter = Counter.builder("events.submitted.total")
+                .description("Total number of submitted events received by the gateway")
+                .register(meterRegistry);
+
+        this.eventsDuplicateCounter = Counter.builder("events.duplicate.total")
+                .description("Total number of duplicate event submissions")
+                .register(meterRegistry);
+
+        this.eventsFailedCounter = Counter.builder("events.failed.total")
+                .description("Total number of events that failed to apply to account service")
+                .register(meterRegistry);
     }
 
     public EventRecord submitEvent(EventRequest request, String traceId) {
+        eventsSubmittedCounter.increment();
+
         return eventRepository.findById(request.eventId())
+                .map(existing -> {
+                    eventsDuplicateCounter.increment();
+                    return existing;
+                })
                 .orElseGet(() -> createAndApplyEvent(request, traceId));
     }
 
@@ -45,6 +71,8 @@ public class EventService {
             event.markApplied();
             return eventRepository.save(event);
         } catch (Exception ex) {
+            eventsFailedCounter.increment();
+
             event.markFailed();
             eventRepository.save(event);
 

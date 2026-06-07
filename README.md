@@ -220,6 +220,23 @@ The Gateway and Account Service have separate codebases and separate databases, 
 
 ---
 
+## Custom Metrics
+
+The Event Gateway exposes custom Micrometer metrics through Spring Boot Actuator.
+
+| Metric | Description |
+|---|---|
+| `events.submitted.total` | Total number of event submissions received |
+| `events.duplicate.total` | Total number of duplicate event submissions |
+| `events.failed.total` | Total number of events that failed while calling Account Service |
+
+Validate:
+
+```bash
+curl http://localhost:8080/actuator/metrics/events.submitted.total
+curl http://localhost:8080/actuator/metrics/events.duplicate.total
+curl http://localhost:8080/actuator/metrics/events.failed.total
+
 # Future Improvements
 
 * Docker Compose
