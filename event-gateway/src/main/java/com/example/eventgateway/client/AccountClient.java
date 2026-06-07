@@ -10,6 +10,7 @@ import java.util.Map;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 
 @Component
 public class AccountClient {
@@ -34,9 +35,19 @@ public class AccountClient {
     }
 
     public Map accountServiceFallback(EventRequest request, String traceId, Throwable ex) {
+
+        System.out.println("Fallback exception class = " + ex.getClass().getName());
+
+        if (ex instanceof CallNotPermittedException) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Account Service circuit breaker is OPEN. Request failed fast."
+            );
+        }
+
         throw new ResponseStatusException(
                 HttpStatus.SERVICE_UNAVAILABLE,
-                "Account Service is currently unavailable. Please retry later."
+                "Account Service is unavailable. Event stored but not applied."
         );
     }
 
