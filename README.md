@@ -1,36 +1,150 @@
 # Event Ledger
 
 ## Overview
-Event Ledger is a two-service Spring Boot system for processing financial transaction events.
 
-It contains:
-- Event Gateway API: public-facing service that accepts events, validates them, enforces idempotency, stores event records, and calls Account Service.
-- Account Service: internal service that manages account balances and transaction history.
+Event Ledger is a distributed financial transaction processing system implemented using two independent Spring Boot microservices.
 
-## Architecture
+* **Event Gateway** – Public-facing API that validates requests, enforces idempotency, stores events, and forwards transactions.
+* **Account Service** – Internal service responsible for account balances and transaction history.
 
-Client -> Event Gateway API -> Account Service
+---
 
-Each service runs independently and uses its own H2 in-memory database. The services communicate using synchronous REST calls.
+# Architecture
 
-## Services
+```text
+                    +----------------------+
+                    |        Client        |
+                    +----------+-----------+
+                               |
+                        POST /events
+                               |
+                               v
+                    +----------------------+
+                    |    Event Gateway     |
+                    |----------------------|
+                    | Validation           |
+                    | Idempotency          |
+                    | Event Store          |
+                    +----------+-----------+
+                               |
+                               | REST + X-Trace-Id
+                               |
+                               v
+                    +----------------------+
+                    |   Account Service    |
+                    |----------------------|
+                    | Transactions         |
+                    | Balance              |
+                    | Account Store        |
+                    +----------------------+
+```
 
-| Service | Port | Responsibility |
-|---|---:|---|
-| Event Gateway | 8080 | Accepts transaction events and exposes event APIs |
-| Account Service | 8081 | Applies transactions and manages balances |
+Both services run independently and maintain separate H2 databases.
 
-## API Contract: Gateway to Account Service
+---
 
-### POST /accounts/{accountId}/transactions
+# Services
 
-Request header:
+| Service         | Port | Responsibility                              |
+| --------------- | ---- | ------------------------------------------- |
+| Event Gateway   | 8080 | Accepts events and exposes public APIs      |
+| Account Service | 8081 | Applies transactions and maintains balances |
 
-| Header | Description |
-|---|---|
-| X-Trace-Id | Trace/correlation ID propagated from Gateway |
+---
 
-Request body:
+# Implemented Features
+
+* ✅ Idempotent event processing
+* ✅ Out-of-order event handling
+* ✅ Balance computation
+* ✅ Request validation
+* ✅ Separate microservices and databases
+* ✅ Health endpoints
+* ✅ Trace ID propagation
+* ✅ REST-based service communication
+
+---
+
+# Quick Start
+
+Start Account Service:
+
+```bash
+cd account-service
+mvn spring-boot:run
+```
+
+Start Event Gateway:
+
+```bash
+cd event-gateway
+mvn spring-boot:run
+```
+
+Health checks:
+
+```bash
+curl http://localhost:8081/health
+curl http://localhost:8080/health
+```
+
+---
+
+# Public APIs
+
+## Event Gateway
+
+| Method | Endpoint                 |
+| ------ | ------------------------ |
+| POST   | `/events`                |
+| GET    | `/events/{id}`           |
+| GET    | `/events?account={id}`   |
+| GET    | `/accounts/{id}/balance` |
+| GET    | `/health`                |
+
+## Account Service
+
+| Method | Endpoint                      |
+| ------ | ----------------------------- |
+| POST   | `/accounts/{id}/transactions` |
+| GET    | `/accounts/{id}`              |
+| GET    | `/accounts/{id}/balance`      |
+| GET    | `/health`                     |
+
+---
+
+# Internal API Contract
+
+## Event Gateway → Account Service
+
+### Endpoint
+
+`POST /accounts/{accountId}/transactions`
+
+### Responsibilities
+
+**Event Gateway**
+
+* Validate request
+* Enforce idempotency
+* Persist event
+* Generate and propagate trace ID
+
+**Account Service**
+
+* Apply transaction
+* Compute balance
+* Persist transaction
+* Maintain account state
+
+### Request Headers
+
+| Header       | Description                            |
+| ------------ | -------------------------------------- |
+| Content-Type | application/json                       |
+| X-Trace-Id   | Correlation ID for distributed tracing |
+
+### Request
 
 ```json
 {
@@ -41,3 +155,78 @@ Request body:
   "currency": "USD",
   "eventTimestamp": "2026-05-15T14:02:11Z"
 }
+```
+
+### Validation Rules
+
+* `eventId` must be present and unique
+* `accountId` is required
+* `type` must be `CREDIT` or `DEBIT`
+* `amount` must be greater than zero
+* `currency` is required
+* `eventTimestamp` must be a valid ISO-8601 timestamp
+
+### Success Response
+
+```json
+{
+  "status": "APPLIED",
+  "accountId": "acct-123",
+  "balance": 150.00
+}
+```
+
+### Duplicate Response
+
+```json
+{
+  "status": "DUPLICATE",
+  "accountId": "acct-123",
+  "balance": 150.00
+}
+```
+
+### Error Responses
+
+| Status | Description            |
+| ------ | ---------------------- |
+| 400    | Validation failure     |
+| 503    | Dependency unavailable |
+| 500    | Internal server error  |
+
+---
+
+# Design Decisions
+
+## Idempotency
+
+Duplicate `eventId` values are detected by the Event Gateway. Duplicate events are not forwarded to the Account Service.
+
+## Out-of-Order Events
+
+Events are stored with their original `eventTimestamp` and retrieved in chronological order.
+
+## Balance Computation
+
+```
+Net Balance = Σ(CREDIT) − Σ(DEBIT)
+```
+
+The final balance is independent of arrival order.
+
+## Service Isolation
+
+The Gateway and Account Service have separate codebases and separate databases, communicating only through REST APIs.
+
+---
+
+# Future Improvements
+
+* Docker Compose
+* Resilience4j Circuit Breaker
+* OpenTelemetry tracing
+* Prometheus/Grafana metrics
+* Structured JSON logging
+* PostgreSQL instead of H2
+* OpenAPI (Swagger) documentation
+* Asynchronous retry mechanism for failed downstream calls
