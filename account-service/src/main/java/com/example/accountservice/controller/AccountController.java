@@ -36,5 +36,9 @@ public class AccountController {
         return accountService.getAccount(accountId);
     }
 
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "UP", "service", "account-service");
+    }
 
 }

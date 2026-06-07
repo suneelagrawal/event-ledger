@@ -1,3 +1,5 @@
+import java.time.Instant;
+
 public class JsonLogger {
 
     private static final String SERVICE = "account-service";
