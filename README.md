@@ -237,6 +237,17 @@ curl http://localhost:8080/actuator/metrics/events.submitted.total
 curl http://localhost:8080/actuator/metrics/events.duplicate.total
 curl http://localhost:8080/actuator/metrics/events.failed.total
 
+## Automated Tests
+
+Tests can be run using Maven:
+
+```bash
+cd account-service
+mvn test
+
+cd ../event-gateway
+mvn test
+
 # Future Improvements
 
 * Docker Compose
