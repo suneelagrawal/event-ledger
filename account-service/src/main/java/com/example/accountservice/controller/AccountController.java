@@ -2,8 +2,10 @@ package com.example.accountservice.controller;
 
 import com.example.accountservice.dto.TransactionRequest;
 import com.example.accountservice.service.AccountService;
+import com.example.accountservice.util.JsonLogger;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.Map;
 
@@ -22,7 +24,7 @@ public class AccountController {
             @Valid @RequestBody TransactionRequest request,
             @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
 
-        JsonLogger.info(traceId, "Applying transaction " + request.getEventId());
+        JsonLogger.info(traceId, "Applying transaction " + request.eventId());
         return accountService.applyTransaction(request);
     }
 

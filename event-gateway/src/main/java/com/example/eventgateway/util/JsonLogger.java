@@ -1,3 +1,7 @@
+package com.example.eventgateway.util;
+
+import java.time.Instant;
+
 public class JsonLogger {
 
     private static final String SERVICE = "event-gateway";

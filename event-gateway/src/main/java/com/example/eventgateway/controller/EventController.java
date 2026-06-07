@@ -6,6 +6,7 @@ import com.example.eventgateway.entity.EventRecord;
 import com.example.eventgateway.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import com.example.eventgateway.util.JsonLogger;
 
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class EventController {
 
         String traceId = incomingTraceId != null ? incomingTraceId : UUID.randomUUID().toString();
 
-        JsonLogger.info(traceId, "Received event " + request.getEventId());
+        JsonLogger.info(traceId, "Received event " + request.eventId());
 
         return eventService.submitEvent(request, traceId);
     }

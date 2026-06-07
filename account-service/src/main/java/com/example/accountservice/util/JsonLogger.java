@@ -1,3 +1,5 @@
+package com.example.accountservice.util;
+
 import java.time.Instant;
 
 public class JsonLogger {
