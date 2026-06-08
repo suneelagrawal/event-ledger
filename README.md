@@ -62,6 +62,8 @@ Both services run independently and maintain separate H2 databases.
 * ✅ Health endpoints
 * ✅ Trace ID propagation
 * ✅ REST-based service communication
+* ✅ Circuit breaker
+* ✅ Automated test cases including end to end integration test
 
 ---
 
