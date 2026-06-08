@@ -250,11 +250,8 @@ mvn test
 
 # Future Improvements
 
-* Docker Compose
-* Resilience4j Circuit Breaker
 * OpenTelemetry tracing
 * Prometheus/Grafana metrics
-* Structured JSON logging
 * PostgreSQL instead of H2
 * OpenAPI (Swagger) documentation
 * Asynchronous retry mechanism for failed downstream calls
