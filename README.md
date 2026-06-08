@@ -59,6 +59,7 @@ Both services run independently and maintain separate H2 databases.
 * ✅ Balance computation
 * ✅ Request validation
 * ✅ Separate microservices and databases
+* ✅ Graceful degradation when the Account Service is unavailable
 * ✅ Health endpoints
 * ✅ Trace ID propagation
 * ✅ REST-based service communication
