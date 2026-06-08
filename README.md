@@ -60,6 +60,7 @@ Both services run independently and maintain separate H2 databases.
 * ✅ Request validation
 * ✅ Separate microservices and databases
 * ✅ Graceful degradation when the Account Service is unavailable
+* ✅ docker compose
 * ✅ Health endpoints
 * ✅ Trace ID propagation
 * ✅ REST-based service communication
